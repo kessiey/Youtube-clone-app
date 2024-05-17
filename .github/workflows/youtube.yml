@@ -38,4 +38,15 @@ jobs:
           docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
           docker push kessie/youtube:latest
         env:
-          DOCKER_CLI_ACI: 1
+          DOCKER_CLI_ACI: 1              
+
+  deploy:
+    needs: build-analyze-scan
+    runs-on: [aws-youtube]
+    steps:
+      - name: Pull the docker image
+        run: docker pull kessie/youtube:latest
+      - name: Trivy image scan
+        run: trivy image kessie/youtube:latest
+      - name: Run the container youtube
+        run: docker run -d --name youtube -p 8081:80 kessie/youtube:latest
